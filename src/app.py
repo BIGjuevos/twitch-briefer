@@ -3,7 +3,7 @@ import textwrap
 from datetime import datetime
 from functools import lru_cache
 
-from flask import Flask, request, render_template
+from flask import Flask, request, render_template, jsonify
 import requests
 from bs4 import BeautifulSoup
 
@@ -13,8 +13,13 @@ app = Flask(__name__)
 
 
 @app.route('/')
-def hello_world():
+def index():
     return render_template('index.html')
+
+
+@app.route('/status')
+def status():
+    return jsonify({})
 
 
 @app.route('/plan', methods=['POST'])
