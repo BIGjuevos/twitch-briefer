@@ -1,0 +1,48 @@
+<!doctype html>
+<html lang="en">
+<head>
+    <style>
+        body {
+            margin: 0;
+            padding: 0;
+        }
+        pre {
+            margin: 0;
+            font-family: "Courier New";
+        }
+    </style>
+</head>
+<body>
+<pre>
+ZFG632 FLIGHT BRIEF                                   {{ origin }} - {{ dest }}
+REQ TIME: {{ requested_at }}
+====================================
+
+ROUTE INFORMATION
+=================
+ROUTE:
+{{ route }}
+
+FLIGHT LEVELS: {{ flight_levels }}
+DISTANCE: {{ distance }}
+
+FUEL (IN LBS)
+=============
+USE: {{ fuel[0] }} {{ fuel[1] }}
+RES: {{ fuel[2] }} {{ fuel[3] }}
+TOT: {{ fuel[4] }} {{ fuel[5] }}
+
+WEATHER
+=======
+{{ origin_weather }}
+
+{{ origin_taf }}
+
+---
+
+{{ dest_weather }}
+
+{{ dest_taf }}
+</pre>
+</body>
+</html>
