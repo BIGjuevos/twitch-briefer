@@ -1,0 +1,62 @@
+    <meta charset="utf-8"/>
+    <style type="text/css">
+        body {
+            margin: 0;
+            color: black;
+            font-family: sans-serif;
+            font-size: 11pt;
+        }
+        #map { height: 100%; min-height: 540px; }
+        #marker {
+            width: 80px;
+            height: 78px;
+        }
+    </style>
+
+    <script src='https://api.tiles.mapbox.com/mapbox-gl-js/v0.53.0/mapbox-gl.js'></script>
+    <link href='https://api.tiles.mapbox.com/mapbox-gl-js/v0.53.0/mapbox-gl.css' rel='stylesheet' />
+
+    <script type="text/javascript">
+        $(document).ready(function() {
+            setInterval(function() {
+                $.ajax('data.php?thing=map', {
+                    success: function (data) {
+                        var target = new mapboxgl.LngLat(data['lng'], data['lat']);
+                        marker.setLngLat(target);
+                        $('#marker > img').css({ WebkitTransform: 'rotate(' + data['hdg'] + 'deg)'});
+                        $('#marker > img').css({ '-moz-transform': 'rotate(' + data['hdg'] + 'deg)'});
+
+                        if ( data['gs'] < 50 ) {
+                            map.setZoom(15);
+                        } else if ( data['gs'] < 180 ) {
+                            map.setZoom(13);
+                        } else if ( data['gs'] < 250 ) {
+                            map.setZoom(11);
+                        } else {
+                            map.setZoom(9);
+                        }
+                        map.panTo(target);
+                    }
+                });
+            }, 500);
+        });
+    </script>
+
+    <div id="map"></div>
+    <div id="marker"><img src="img/plane.png"/></div>
+    <script type="text/javascript">
+        mapboxgl.accessToken = '{{ access_token }}';
+        const map = new mapboxgl.Map({
+            container: 'map',
+            style: 'mapbox://styles/mapbox/streets-v11',
+            center: [-118.076000, 34.243000],
+            zoom: 8.0
+        });
+
+        var el = document.getElementById('marker');
+        var marker = new mapboxgl.Marker(el)
+            .setLngLat([0,0]);
+        marker.addTo(map);
+
+        map.scrollZoom.disable();
+    </script>
