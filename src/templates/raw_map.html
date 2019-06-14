@@ -43,7 +43,7 @@
     </script>
 
     <div id="map"></div>
-    <div id="marker"><img src="img/plane.png"/></div>
+    <div id="marker"><img src="{{ url_for('static', filename='img/plane.png') }}"/></div>
     <script type="text/javascript">
         mapboxgl.accessToken = '{{ access_token }}';
         const map = new mapboxgl.Map({

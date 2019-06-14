@@ -2,7 +2,7 @@ import os
 import textwrap
 from datetime import datetime
 
-from flask import Flask, request, render_template, jsonify
+from flask import Flask, request, render_template, jsonify, send_from_directory
 
 from src.helpers.flight import get_metar, get_taf, get_fuel, get_route
 
@@ -27,6 +27,12 @@ def fly():
                            twitch_client_id=os.environ['TWITCH_CLIENT_ID'])
 
 
+@app.route('/forge')
+def forge():
+    return render_template('forge.html',
+                           twitch_client_id=os.environ['TWITCH_CLIENT_ID'])
+
+
 @app.route('/map')
 def map():
     if request.args.get('raw') is not None:
@@ -37,7 +43,7 @@ def map():
                                access_token=os.environ['MAPBOX_TOKEN'])
 
 
-@app.route('/data')
+@app.route('/data', methods=['POST'])
 def data():
     return render_template('raw_map.html')
 
