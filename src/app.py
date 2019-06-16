@@ -38,7 +38,8 @@ def forge():
 def map():
     if request.args.get('raw') is not None:
         return render_template('raw_map.html',
-                               access_token=os.environ['MAPBOX_TOKEN'])
+                               access_token=os.environ['MAPBOX_TOKEN'],
+                               includeJquery=True)
     else:
         return render_template('map.html',
                                access_token=os.environ['MAPBOX_TOKEN'])

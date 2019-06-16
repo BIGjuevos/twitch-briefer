@@ -13,6 +13,11 @@
         }
     </style>
 
+    {% if includeJquery is defined %}
+    <script src="https://code.jquery.com/jquery-3.2.1.min.js"
+            crossorigin="anonymous"></script>
+    {% endif %}
+
     <script src='https://api.tiles.mapbox.com/mapbox-gl-js/v0.53.0/mapbox-gl.js'></script>
     <link href='https://api.tiles.mapbox.com/mapbox-gl-js/v0.53.0/mapbox-gl.css' rel='stylesheet' />
 
