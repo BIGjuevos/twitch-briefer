@@ -19,7 +19,7 @@
     <script type="text/javascript">
         $(document).ready(function() {
             setInterval(function() {
-                $.ajax('data.php?thing=map', {
+                $.ajax('/data?thing=map', {
                     success: function (data) {
                         var target = new mapboxgl.LngLat(data['lng'], data['lat']);
                         marker.setLngLat(target);
@@ -38,7 +38,7 @@
                         map.panTo(target);
                     }
                 });
-            }, 500);
+            }, 1000);
         });
     </script>
 

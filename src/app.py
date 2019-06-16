@@ -4,6 +4,7 @@ from datetime import datetime
 
 from flask import Flask, request, render_template, jsonify, send_from_directory
 
+from src.helpers.db import get_data, set_data
 from src.helpers.flight import get_metar, get_taf, get_fuel, get_route
 
 WRAP_WIDTH = 65
@@ -43,14 +44,20 @@ def map():
                                access_token=os.environ['MAPBOX_TOKEN'])
 
 
-@app.route('/data', methods=['POST'])
+@app.route('/data', methods=['GET'])
 def data():
-    return render_template('raw_map.html')
+    return jsonify(get_data(request.args.get('thing')))
+
+
+@app.route('/in', methods=['GET'])
+def put():
+    set_data(request.args.get('nam'), request.args.get('val'))
+    return jsonify({})
 
 
 @app.route('/plan', methods=['POST'])
 def plan():
-    "fetch the page for the plans we care about"
+    """fetch the page for the plans we care about"""
     origin = request.form['origin']
     dest = request.form['destination']
 
@@ -66,6 +73,10 @@ def plan():
     dest_taf = "\n".join(textwrap.wrap(get_taf(dest), WRAP_WIDTH))
 
     fuel = get_fuel(origin, dest)
+
+    set_data('rte', route)
+    set_data('dep', origin)
+    set_data('arr', dest)
 
     return render_template('plan.html',
                            origin=origin,
