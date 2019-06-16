@@ -10,7 +10,7 @@ connection = pymysql.connect(host='maria.ryannull.com',
 
 def set_data(thing, value):
     with connection.cursor() as cursor:
-        cursor.execute('REPLACE INTO databits (nam,val) VALUES(?,?)', (thing, value))
+        cursor.execute('REPLACE INTO databits (nam,val) VALUES(%s,%s)', (thing, value))
 
 
 def get_data(thing):
