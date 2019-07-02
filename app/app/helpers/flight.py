@@ -1,11 +1,9 @@
 import json
 import requests
 
-from functools import lru_cache
 from bs4 import BeautifulSoup
 
 
-@lru_cache()
 def get_metar(station):
     response = requests.get(f'https://avwx.rest/api/metar/{station}?options=&format=json&onfail=cache')
 
@@ -14,7 +12,6 @@ def get_metar(station):
     return obj['sanitized']
 
 
-@lru_cache()
 def get_taf(station):
     response = requests.get(f'https://avwx.rest/api/taf/{station}?options=summary&format=json&onfail=cache')
 
@@ -23,7 +20,6 @@ def get_taf(station):
     return obj['raw']
 
 
-@lru_cache()
 def get_route(origin, dest):
     url = f"https://flightaware.com/analysis/route.rvt?origin={origin}&destination={dest}"
     headers = {
@@ -50,7 +46,6 @@ def get_route(origin, dest):
     #     return f.read()
 
 
-@lru_cache()
 def get_fuel(origin, dest):
     params = {
         "okstart": 1,
