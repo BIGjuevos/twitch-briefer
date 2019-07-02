@@ -68,6 +68,12 @@ def make_guess():
     return "OK"
 
 
+@app.route('/choose_winner', methods=['GET'])
+def choose_winner():
+    # do stuff here
+    return "OK"
+
+
 @app.route('/in', methods=['GET'])
 def put():
     set_data(request.args.get('nam'), request.args.get('val'))

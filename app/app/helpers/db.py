@@ -13,7 +13,7 @@ def set_data(thing, value):
     try:
         connection.begin()
 
-        cursor.execute('REPLACE INTO databits (nam,val) VALUES(%s,%s)', (thing, value))
+        cursor.execute('UPDATE databits SET val=%s WHERE nam=%s', (value, thing))
 
         if thing == "og" and value == "1" and get_data('og') == '0':
             cursor.execute('REPLACE INTO databits (nam,val) VALUES(%s,%s)', ("touchdown_vs", get_data('vs'), ))
@@ -21,6 +21,7 @@ def set_data(thing, value):
         connection.commit()
     except Exception as e:
         logging.getLogger().error(e)
+        connection.rollback()
     finally:
         cursor.close()
         pool.release(connection)

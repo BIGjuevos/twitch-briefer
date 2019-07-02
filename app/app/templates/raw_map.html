@@ -35,7 +35,7 @@
                         };
                         marker.setPosition(target);
 
-                        iconData.rotation = Math.round(parseFloat(data['hdg']))
+                        iconData.rotation = Math.round(parseFloat(data['hdg']));
                         marker.setOptions({icon: iconData});
 
                         if ( data['gs'] < 50 ) {
