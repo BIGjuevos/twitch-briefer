@@ -1,3 +1,4 @@
+import logging
 import os
 import textwrap
 from datetime import datetime
@@ -9,6 +10,10 @@ from .helpers.db import get_data, set_data
 from .helpers.flight import get_metar, get_taf, get_fuel, get_route
 
 WRAP_WIDTH = 65
+
+formatter = logging.Formatter(
+    "[%(asctime)s] {%(pathname)s:%(lineno)d} %(levelname)s - %(message)s")
+logging.basicConfig(filename="logs/app.log", format=formatter, level=logging.INFO)
 
 app = Flask(__name__)
 config = {
@@ -77,7 +82,7 @@ def plan():
 
     origin_weather = "\n".join(textwrap.wrap(get_metar(origin), WRAP_WIDTH))
     dest_weather = "\n".join(textwrap.wrap(get_metar(dest), WRAP_WIDTH))
-    
+
     origin_taf = "\n".join(textwrap.wrap(get_taf(origin), WRAP_WIDTH))
     dest_taf = "\n".join(textwrap.wrap(get_taf(dest), WRAP_WIDTH))
 
