@@ -26,6 +26,22 @@ def set_data(thing, value):
         pool.release(connection)
 
 
+def guess(username, speed):
+    connection = pool.get_conn()
+    cursor = connection.cursor()
+    try:
+        connection.begin()
+
+        cursor.execute('REPLACE INTO guesses(username,speed) VALUES(%s,%s)', (username, speed))
+
+        connection.commit()
+    except Exception as e:
+        logging.getLogger().error(e)
+    finally:
+        cursor.close()
+        pool.release(connection)
+
+
 def get_data(thing):
     connection = pool.get_conn()
     cursor = connection.cursor()

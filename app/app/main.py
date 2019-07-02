@@ -6,7 +6,7 @@ from datetime import datetime
 from flask import Flask, request, render_template, jsonify
 from flask_graylog import Graylog
 
-from .helpers.db import get_data, set_data
+from .helpers.db import get_data, set_data, guess
 from .helpers.flight import get_metar, get_taf, get_fuel, get_route
 
 WRAP_WIDTH = 65
@@ -60,6 +60,12 @@ def map():
 @app.route('/data', methods=['GET'])
 def data():
     return jsonify(get_data(request.args.get('thing')))
+
+
+@app.route('/guess', methods=['GET'])
+def make_guess():
+    guess(request.args.get('username'), request.args.get('speed'))
+    return "OK"
 
 
 @app.route('/in', methods=['GET'])
