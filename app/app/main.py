@@ -11,9 +11,7 @@ from .helpers.flight import get_metar, get_taf, get_fuel, get_route
 
 WRAP_WIDTH = 65
 
-formatter = logging.Formatter(
-    "[%(asctime)s] {%(pathname)s:%(lineno)d} %(levelname)s - %(message)s")
-logging.basicConfig(filename="logs/app.log", format=formatter, level=logging.INFO)
+logging.basicConfig(filename="/app/app/logs/app.log", level=logging.INFO)
 
 app = Flask(__name__)
 # config = {
