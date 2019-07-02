@@ -3,6 +3,7 @@ import textwrap
 from datetime import datetime
 
 from flask import Flask, request, render_template, jsonify
+from flask_graylog import Graylog
 
 from .helpers.db import get_data, set_data
 from .helpers.flight import get_metar, get_taf, get_fuel, get_route
@@ -10,6 +11,13 @@ from .helpers.flight import get_metar, get_taf, get_fuel, get_route
 WRAP_WIDTH = 65
 
 app = Flask(__name__)
+config = {
+    'GRAYLOG_HOST': 'graylog.service.consul',
+    'GRAYLOG_FACILITY': 'twitch-briefer'
+}
+graylog = Graylog(app, config=config)
+
+graylog.info('test')
 
 
 @app.route('/')
