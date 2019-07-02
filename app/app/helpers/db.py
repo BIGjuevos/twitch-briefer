@@ -1,21 +1,35 @@
-import pymysql
+import logging
 
-connection = pymysql.connect(host='maria.ryannull.com',
-                             user='otc',
-                             password='otc',
-                             db='otc',
-                             charset='utf8',
-                             cursorclass=pymysql.cursors.DictCursor)
+import pymysql
+from pymysqlpool.pool import Pool
+
+pool = Pool(host="maria.ryannull.com", port=3306, user="otc", password="otc", db="otc", min_size=8, max_size=16)
+pool.init()
 
 
 def set_data(thing, value):
-    with connection.cursor() as cursor:
+    connection = pool.get_conn()
+    cursor = connection.cursor()
+    try:
+        connection.begin()
+
         cursor.execute('REPLACE INTO databits (nam,val) VALUES(%s,%s)', (thing, value))
-    connection.commit()
+
+        connection.commit()
+    except Exception as e:
+        logging.getLogger().error(e)
+    finally:
+        cursor.close()
+        pool.release(connection)
 
 
 def get_data(thing):
-    with connection.cursor() as cursor:
+    connection = pool.get_conn()
+    cursor = connection.cursor()
+    ret = ""
+
+    try:
+        connection.begin()
         if thing == "map":
             cursor.execute("SELECT * from databits WHERE nam=%s", ("lat",))
             lat = cursor.fetchone()["val"]
@@ -29,7 +43,7 @@ def get_data(thing):
             cursor.execute("SELECT * from databits WHERE nam=%s", ("gs",))
             gs = cursor.fetchone()["val"]
 
-            return {
+            ret = {
                 'lat': lat,
                 'lng': lng,
                 'hdg': hdg,
@@ -37,16 +51,16 @@ def get_data(thing):
             }
         elif thing == "hdg":
             cursor.execute("SELECT * from databits WHERE nam=%s", ("hdg",))
-            return cursor.fetchone()["val"]
+            ret = cursor.fetchone()["val"]
         elif thing == "gs":
             cursor.execute("SELECT * from databits WHERE nam=%s", ("gs",))
-            return cursor.fetchone()["val"]
+            ret = cursor.fetchone()["val"]
         elif thing == "tas":
             cursor.execute("SELECT * from databits WHERE nam=%s", ("tas",))
-            return cursor.fetchone()["val"]
+            ret = cursor.fetchone()["val"]
         elif thing == "alt":
             cursor.execute("SELECT * from databits WHERE nam=%s", ("alt",))
-            return cursor.fetchone()["val"]
+            ret = cursor.fetchone()["val"]
         elif thing == "rte":
             cursor.execute("SELECT * from databits WHERE nam=%s", ("dep",))
             dep = cursor.fetchone()["val"]
@@ -57,4 +71,12 @@ def get_data(thing):
             cursor.execute("SELECT * from databits WHERE nam=%s", ("rte",))
             rte = cursor.fetchone()["val"]
 
-            return dep + " " + rte + " " + arr
+            ret = dep + " " + rte + " " + arr
+
+    except Exception as e:
+        logging.getLogger().error(e)
+    finally:
+        connection.rollback()
+        cursor.close()
+        pool.release(connection)
+        return ret
