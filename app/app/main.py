@@ -16,13 +16,13 @@ formatter = logging.Formatter(
 logging.basicConfig(filename="logs/app.log", format=formatter, level=logging.INFO)
 
 app = Flask(__name__)
-config = {
-    'GRAYLOG_HOST': 'graylog.service.consul',
-    'GRAYLOG_FACILITY': 'twitch-briefer'
-}
-graylog = Graylog(app, config=config)
-
-graylog.info('test')
+# config = {
+#     'GRAYLOG_HOST': 'graylog.service.consul',
+#     'GRAYLOG_FACILITY': 'twitch-briefer'
+# }
+# graylog = Graylog(app, config=config)
+#
+# graylog.info('test')
 
 
 @app.route('/')
