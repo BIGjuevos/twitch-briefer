@@ -18,8 +18,8 @@
             crossorigin="anonymous"></script>
     {% endif %}
 
-    <script src='https://api.tiles.mapbox.com/mapbox-gl-js/v0.53.0/mapbox-gl.js'></script>
-    <link href='https://api.tiles.mapbox.com/mapbox-gl-js/v0.53.0/mapbox-gl.css' rel='stylesheet' />
+{#    <script src='https://api.tiles.mapbox.com/mapbox-gl-js/v0.53.0/mapbox-gl.js'></script>#}
+{#    <link href='https://api.tiles.mapbox.com/mapbox-gl-js/v0.53.0/mapbox-gl.css' rel='stylesheet' />#}
 
     <script type="text/javascript">
         $(document).ready(function() {
@@ -29,6 +29,7 @@
 
                 $.ajax('/data?thing=map&ts=' + n, {
                     success: function (data) {
+                        /*
                         var target = new mapboxgl.LngLat(data['lng'], data['lat']);
                         marker.setLngLat(target);
                         $('#marker > img').css({ WebkitTransform: 'rotate(' + data['hdg'] + 'deg)'});
@@ -44,6 +45,7 @@
                             map.setZoom(9);
                         }
                         map.panTo(target);
+                         */
                     }
                 });
             }, 1000);
@@ -53,18 +55,14 @@
     <div id="map"></div>
     <div id="marker"><img src="{{ url_for('static', filename='img/plane.png') }}"/></div>
     <script type="text/javascript">
-        mapboxgl.accessToken = '{{ access_token }}';
-        const map = new mapboxgl.Map({
-            container: 'map',
-            style: 'mapbox://styles/mapbox/streets-v11',
-            center: [-118.076000, 34.243000],
-            zoom: 8.0
-        });
-
-        var el = document.getElementById('marker');
-        var marker = new mapboxgl.Marker(el)
-            .setLngLat([0,0]);
-        marker.addTo(map);
-
-        map.scrollZoom.disable();
+        var map;
+        function initMap() {
+            map = new google.maps.Map(document.getElementById('map'), {
+                center: {lat: -34.397, lng: 150.644},
+                zoom: 8
+            });
+        }
     </script>
+    <script src="https://maps.googleapis.com/maps/api/js?key={{ access_token }}&callback=initMap"
+            async defer></script>
+

@@ -11,7 +11,8 @@ from .helpers.flight import get_metar, get_taf, get_fuel, get_route
 
 WRAP_WIDTH = 65
 
-logging.basicConfig(filename="/app/app/logs/app.log", level=logging.INFO)
+dir_path = os.path.dirname(os.path.realpath(__file__))
+logging.basicConfig(filename= f"{dir_path}/logs/app.log", level=logging.INFO)
 
 app = Flask(__name__)
 # config = {
@@ -49,11 +50,11 @@ def forge():
 def map():
     if request.args.get('raw') is not None:
         return render_template('raw_map.html',
-                               access_token=os.environ['MAPBOX_TOKEN'],
+                               access_token=os.environ['GOOGLE_API_KEY'],
                                includeJquery=True)
     else:
         return render_template('map.html',
-                               access_token=os.environ['MAPBOX_TOKEN'])
+                               access_token=os.environ['GOOGLE_API_KEY'])
 
 
 @app.route('/data', methods=['GET'])
