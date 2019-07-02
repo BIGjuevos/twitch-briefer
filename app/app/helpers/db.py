@@ -15,6 +15,9 @@ def set_data(thing, value):
 
         cursor.execute('REPLACE INTO databits (nam,val) VALUES(%s,%s)', (thing, value))
 
+        if thing == "og" and value == "1" and get_data('og') == '0':
+            cursor.execute('REPLACE INTO databits (nam,val) VALUES(%s,%s)', ("touchdown_vs", get_data('vs'), ))
+
         connection.commit()
     except Exception as e:
         logging.getLogger().error(e)
@@ -54,6 +57,12 @@ def get_data(thing):
             ret = cursor.fetchone()["val"]
         elif thing == "gs":
             cursor.execute("SELECT * from databits WHERE nam=%s", ("gs",))
+            ret = cursor.fetchone()["val"]
+        elif thing == "vs":
+            cursor.execute("SELECT * from databits WHERE nam=%s", ("vs",))
+            ret = cursor.fetchone()["val"]
+        elif thing == "og":
+            cursor.execute("SELECT * from databits WHERE nam=%s", ("og",))
             ret = cursor.fetchone()["val"]
         elif thing == "tas":
             cursor.execute("SELECT * from databits WHERE nam=%s", ("tas",))
