@@ -64,7 +64,7 @@ def data():
 @app.route('/in', methods=['GET'])
 def put():
     set_data(request.args.get('nam'), request.args.get('val'))
-    return jsonify({})
+    return "OK"
 
 
 @app.route('/plan', methods=['POST'])
