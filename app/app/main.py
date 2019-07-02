@@ -2,10 +2,10 @@ import os
 import textwrap
 from datetime import datetime
 
-from flask import Flask, request, render_template, jsonify, send_from_directory
+from flask import Flask, request, render_template, jsonify
 
-from src.helpers.db import get_data, set_data
-from src.helpers.flight import get_metar, get_taf, get_fuel, get_route
+from .helpers.db import get_data, set_data
+from .helpers.flight import get_metar, get_taf, get_fuel, get_route
 
 WRAP_WIDTH = 65
 
@@ -94,4 +94,4 @@ def plan():
 
 
 if __name__ == '__main__':
-    app.run()
+    app.run(host='0.0.0.0', debug=True, port=5555)
