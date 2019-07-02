@@ -24,7 +24,10 @@
     <script type="text/javascript">
         $(document).ready(function() {
             setInterval(function() {
-                $.ajax('/data?thing=map', {
+                var d = new Date();
+                var n = d.getMilliseconds();
+
+                $.ajax('/data?thing=map&ts=' + n, {
                     success: function (data) {
                         var target = new mapboxgl.LngLat(data['lng'], data['lat']);
                         marker.setLngLat(target);
