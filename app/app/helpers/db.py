@@ -7,6 +7,10 @@ pool = Pool(host="maria.ryannull.com", port=3306, user="otc", password="otc", db
 pool.init()
 
 
+def just_end_it_all():
+    pool.destroy()
+
+
 def set_data(thing, value):
     connection = pool.get_conn()
     cursor = connection.cursor()

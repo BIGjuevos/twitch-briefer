@@ -1,18 +1,29 @@
 import logging
 import os
+import signal
+import sys
 import textwrap
 from datetime import datetime
 
 from flask import Flask, request, render_template, jsonify
 from flask_graylog import Graylog
 
-from .helpers.db import get_data, set_data, guess
+from .helpers.db import get_data, set_data, guess, just_end_it_all
 from .helpers.flight import get_metar, get_taf, get_fuel, get_route
 
 WRAP_WIDTH = 65
 
 dir_path = os.path.dirname(os.path.realpath(__file__))
 logging.basicConfig(filename= f"{dir_path}/logs/app.log", level=logging.INFO)
+
+
+def sigterm_handler(s, frame):
+    just_end_it_all()
+    sys.exit(0)
+
+
+signal.signal(signal.SIGINT, sigterm_handler)
+signal.signal(signal.SIGQUIT, sigterm_handler)
 
 app = Flask(__name__)
 # config = {
