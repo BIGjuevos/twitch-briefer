@@ -6,6 +6,7 @@ import textwrap
 from datetime import datetime
 
 from flask import Flask, request, render_template, jsonify
+from flask_cors import CORS
 from flask_graylog import Graylog
 
 from .helpers.db import get_data, set_data, guess, just_end_it_all
@@ -26,6 +27,7 @@ signal.signal(signal.SIGINT, sigterm_handler)
 signal.signal(signal.SIGQUIT, sigterm_handler)
 
 app = Flask(__name__)
+CORS(app)
 # config = {
 #     'GRAYLOG_HOST': 'graylog.service.consul',
 #     'GRAYLOG_FACILITY': 'twitch-briefer'
