@@ -69,12 +69,15 @@
         $(document).ready(function() {
             function getStreamInfo() {
                 $.get({
-                    url: 'https://api.twitch.tv/kraken/streams/onetruecaptain?client_id={{ twitch_client_id }}',
+                    url: 'https://api.twitch.tv/helix/streams?user_id=onetruecaptain',
+                    headers: {
+                      'Client-ID': "{{ twitch_client_id }}"
+                    },
                     success: function(data) {
                         if ( data.stream ) {
-                            console.log(data)
-                            $('#viewers').text(data.stream.viewers);
-                            var started = new Date(Date.parse(data.stream.created_at));
+                            console.log(data);
+                            $('#viewers').text(data.viewer_count);
+                            var started = new Date(Date.parse(data.started_at));
                             var start_time = calcTime(started);
                             console.log(started);
                             $('#started').text(start_time);
@@ -85,10 +88,13 @@
                     }
                 });
                 $.get({
-                    url: 'https://api.twitch.tv/kraken/channels/onetruecaptain?client_id={{ twitch_client_id }}',
+                    url: 'https://api.twitch.tv/helix/users/follows?to_id=onetruecaptain',
+                    headers: {
+                        'Client-ID': "{{ twitch_client_id }}"
+                    },
                     success: function(data) {
-                        $('#followers').text(data.followers);
-
+                        console.log(data);
+                        $('#followers').text(data.total);
                     }
                 });
             }
