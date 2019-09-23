@@ -74,7 +74,7 @@
                       'Client-ID': "{{ twitch_client_id }}"
                     },
                     success: function(data) {
-                        if ( data.stream ) {
+                        if ( data.data) {
                             console.log(data);
                             data = data.data;
                             if ( data.length > 0 ) {
