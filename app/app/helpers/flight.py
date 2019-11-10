@@ -1,11 +1,22 @@
 import json
+import os
+
 import requests
 
 from bs4 import BeautifulSoup
 
+headers = {
+    'User-Agent': 'Mozilla/5.0 (Macintosh; Intel Mac OS X 10.14; rv:66.0) Gecko/20100101 Firefox/66.0',
+    'Accept': 'text/html,application/xhtml+xml,application/xml;q=0.9,*/*;q=0.8',
+    'Accept-Encoding': 'gzip, deflate, br',
+    'Accept-Language': 'en-US,en;q=0.5',
+}
+
 
 def get_metar(station):
-    response = requests.get(f'https://avwx.rest/api/metar/{station}?options=&format=json&onfail=cache')
+    token = os.environ['AVWX_API_KEY']
+    url = f'https://avwx.rest/api/metar/{station}?options=&format=json&onfail=cache&token={token}'
+    response = requests.get(url, headers=headers)
 
     obj = json.loads(response.text)
 
@@ -13,7 +24,9 @@ def get_metar(station):
 
 
 def get_taf(station):
-    response = requests.get(f'https://avwx.rest/api/taf/{station}?options=summary&format=json&onfail=cache')
+    token = os.environ['AVWX_API_KEY']
+    url = f'https://avwx.rest/api/taf/{station}?options=summary&format=json&onfail=cache&token={token}'
+    response = requests.get(url, headers=headers)
 
     obj = json.loads(response.text)
 
@@ -22,12 +35,6 @@ def get_taf(station):
 
 def get_route(origin, dest):
     url = f"https://flightaware.com/analysis/route.rvt?origin={origin}&destination={dest}"
-    headers = {
-        'User-Agent': 'Mozilla/5.0 (Macintosh; Intel Mac OS X 10.14; rv:66.0) Gecko/20100101 Firefox/66.0',
-        'Accept': 'text/html,application/xhtml+xml,application/xml;q=0.9,*/*;q=0.8',
-        'Accept-Language': 'en-US,en;q=0.5',
-        'Accept-Encoding': 'gzip, deflate, br',
-    }
     response = requests.get(url, headers=headers)
 
     soup = BeautifulSoup(response.text, features="html.parser")
@@ -56,12 +63,6 @@ def get_fuel(origin, dest):
     }
 
     url = "http://www.fuelplanner.com/index.php"
-    headers = {
-        'User-Agent': 'Mozilla/5.0 (Macintosh; Intel Mac OS X 10.14; rv:66.0) Gecko/20100101 Firefox/66.0',
-        'Accept': 'text/html,application/xhtml+xml,application/xml;q=0.9,*/*;q=0.8',
-        'Accept-Language': 'en-US,en;q=0.5',
-        'Accept-Encoding': 'gzip, deflate, br',
-    }
     response = requests.post(url, data=params, headers=headers)
 
     soup = BeautifulSoup(response.text, features="html.parser")

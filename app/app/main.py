@@ -3,6 +3,7 @@ import os
 import signal
 import sys
 import textwrap
+import traceback
 from datetime import datetime
 
 from flask import Flask, request, render_template, jsonify
@@ -23,8 +24,9 @@ def sigterm_handler(s, frame):
     sys.exit(0)
 
 
-signal.signal(signal.SIGINT, sigterm_handler)
-signal.signal(signal.SIGQUIT, sigterm_handler)
+if os.environ.get('FLASK_ENV') != "development":
+    signal.signal(signal.SIGINT, sigterm_handler)
+    signal.signal(signal.SIGQUIT, sigterm_handler)
 
 app = Flask(__name__)
 CORS(app)
@@ -99,35 +101,39 @@ def plan():
     origin = request.form['origin']
     dest = request.form['destination']
 
-    flight_plan = get_route(origin, dest)
-    route = "\n".join(textwrap.wrap(flight_plan['route'], WRAP_WIDTH))
-    flight_levels = flight_plan['flight_levels']
-    distance = flight_plan['distance']
+    try:
+        flight_plan = get_route(origin, dest)
+        route = "\n".join(textwrap.wrap(flight_plan['route'], WRAP_WIDTH))
+        flight_levels = flight_plan['flight_levels']
+        distance = flight_plan['distance']
 
-    origin_weather = "\n".join(textwrap.wrap(get_metar(origin), WRAP_WIDTH))
-    dest_weather = "\n".join(textwrap.wrap(get_metar(dest), WRAP_WIDTH))
+        origin_weather = "\n".join(textwrap.wrap(get_metar(origin), WRAP_WIDTH))
+        dest_weather = "\n".join(textwrap.wrap(get_metar(dest), WRAP_WIDTH))
 
-    origin_taf = "\n".join(textwrap.wrap(get_taf(origin), WRAP_WIDTH))
-    dest_taf = "\n".join(textwrap.wrap(get_taf(dest), WRAP_WIDTH))
+        origin_taf = "\n".join(textwrap.wrap(get_taf(origin), WRAP_WIDTH))
+        dest_taf = "\n".join(textwrap.wrap(get_taf(dest), WRAP_WIDTH))
 
-    fuel = get_fuel(origin, dest)
+        fuel = get_fuel(origin, dest)
 
-    set_data('rte', route)
-    set_data('dep', origin)
-    set_data('arr', dest)
+        set_data('rte', route)
+        set_data('dep', origin)
+        set_data('arr', dest)
 
-    return render_template('plan.html',
-                           origin=origin,
-                           dest=dest,
-                           flight_levels=flight_levels,
-                           distance=distance,
-                           requested_at=str(datetime.now()),
-                           origin_weather=origin_weather,
-                           dest_weather=dest_weather,
-                           origin_taf=origin_taf,
-                           dest_taf=dest_taf,
-                           fuel=fuel,
-                           route=route)
+        return render_template('plan.html',
+                               origin=origin,
+                               dest=dest,
+                               flight_levels=flight_levels,
+                               distance=distance,
+                               requested_at=str(datetime.now()),
+                               origin_weather=origin_weather,
+                               dest_weather=dest_weather,
+                               origin_taf=origin_taf,
+                               dest_taf=dest_taf,
+                               fuel=fuel,
+                               route=route)
+
+    except Exception as e:
+        return render_template('error.html', e=traceback.format_exc())
 
 
 if __name__ == '__main__':
