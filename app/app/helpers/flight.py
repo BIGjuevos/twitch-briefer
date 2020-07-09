@@ -10,6 +10,7 @@ headers = {
     'Accept': 'text/html,application/xhtml+xml,application/xml;q=0.9,*/*;q=0.8',
     'Accept-Encoding': 'gzip, deflate, br',
     'Accept-Language': 'en-US,en;q=0.5',
+    'Cache-Control': 'max-age=0',
 }
 
 
@@ -35,10 +36,11 @@ def get_taf(station):
 
 def get_route(origin, dest):
     url = f"https://flightaware.com/analysis/route.rvt?origin={origin}&destination={dest}"
+    headers['Referer'] = url
     response = requests.get(url, headers=headers)
 
     soup = BeautifulSoup(response.text, features="html.parser")
-    table = soup.findAll('table')[3]
+    table = soup.findAll('table')[2]
 
     flight_levels = table.findAll('td')[3].contents[0]
     route = table.findAll('td')[4].findAll('a')[0].contents[0]
@@ -48,6 +50,7 @@ def get_route(origin, dest):
         "flight_levels": flight_levels,
         "route": route,
         "distance": distance,
+        "url": url,
     }
     # with open("static/test.html") as f:
     #     return f.read()
