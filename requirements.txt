@@ -9,7 +9,7 @@ Flask-Cors==3.0.8
 graypy==1.1.2
 idna==2.8
 itsdangerous==1.1.0
-Jinja2==2.10.1
+Jinja2==2.11.3
 MarkupSafe==1.1.1
 mysqlclient==1.4.2.post1
 PyMySQL==0.9.3
