@@ -4,7 +4,7 @@ certifi==2019.3.9
 chardet==3.0.4
 Click==7.0
 Flask==1.0.3
-Flask-Cors==3.0.8
+Flask-Cors==3.0.9
 -e git://github.com/BIGjuevos/flask-graylog@7276ab538ea83301018453483b2f9b00c875e7d2#egg=Flask_Graylog
 graypy==1.1.2
 idna==2.8
