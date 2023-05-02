@@ -1,9 +1,8 @@
 import logging
 
-import pymysql
 from pymysqlpool.pool import Pool
 
-pool = Pool(host="maria.ryannull.com", port=3306, user="otc", password="otc", db="otc", min_size=1, max_size=2)
+pool = Pool(host="tools.ryannull.com", port=3306, user="otc", password="otc", db="otc", min_size=1, max_size=2)
 pool.init()
 
 
@@ -45,6 +44,24 @@ def guess(username, speed):
     finally:
         cursor.close()
         pool.release(connection)
+
+
+def get_airport_data(airport) -> dict:
+    connection = pool.get_conn()
+    cursor = connection.cursor()
+    ret = {}
+
+    try:
+        connection.begin()
+        cursor.execute("SELECT * from airports WHERE ident=%s", (airport,))
+        ret = cursor.fetchone()
+    except Exception as e:
+        logging.getLogger().error(e)
+    finally:
+        cursor.close()
+        pool.release(connection)
+
+    return ret
 
 
 def get_data(thing):

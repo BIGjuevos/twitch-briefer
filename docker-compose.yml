@@ -1,0 +1,8 @@
+version: '3'
+services:
+  web:
+    build: .
+    container_name: twitch-briefer
+    restart: always
+    ports:
+      - "8888:8888"

@@ -6,11 +6,12 @@ import requests
 from bs4 import BeautifulSoup
 
 headers = {
-    'User-Agent': 'Mozilla/5.0 (Macintosh; Intel Mac OS X 10.14; rv:66.0) Gecko/20100101 Firefox/66.0',
-    'Accept': 'text/html,application/xhtml+xml,application/xml;q=0.9,*/*;q=0.8',
+    'User-Agent': 'Mozilla/5.0 (Windows NT 10.0; Win64; x64; rv:109.0) Gecko/20100101 Firefox/109.0',
+    'Accept': 'application/json,text/html,application/xhtml+xml,application/xml;q=0.9,image/avif,image/webp,*/*;q=0.8',
     'Accept-Encoding': 'gzip, deflate, br',
     'Accept-Language': 'en-US,en;q=0.5',
     'Cache-Control': 'max-age=0',
+    'Cookie': ''
 }
 
 
@@ -35,25 +36,11 @@ def get_taf(station):
 
 
 def get_route(origin, dest):
-    url = f"https://flightaware.com/analysis/route.rvt?origin={origin}&destination={dest}"
-    headers['Referer'] = url
-    response = requests.get(url, headers=headers)
-
-    soup = BeautifulSoup(response.text, features="html.parser")
-    table = soup.findAll('table')[2]
-
-    flight_levels = table.findAll('td')[3].contents[0]
-    route = table.findAll('td')[4].findAll('a')[0].contents[0]
-    distance = table.findAll('td')[5].contents[0]
-
     return {
-        "flight_levels": flight_levels,
-        "route": route,
-        "distance": distance,
-        "url": url,
+        "flight_levels": [],
+        "route": "TBD",
+        "distance": 0,
     }
-    # with open("static/test.html") as f:
-    #     return f.read()
 
 
 def get_fuel(origin, dest):

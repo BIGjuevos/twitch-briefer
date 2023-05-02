@@ -8,7 +8,6 @@ from datetime import datetime
 
 from flask import Flask, request, render_template, jsonify
 from flask_cors import CORS
-from flask_graylog import Graylog
 
 from .helpers.db import get_data, set_data, guess, just_end_it_all
 from .helpers.flight import get_metar, get_taf, get_fuel, get_route
@@ -16,7 +15,7 @@ from .helpers.flight import get_metar, get_taf, get_fuel, get_route
 WRAP_WIDTH = 65
 
 dir_path = os.path.dirname(os.path.realpath(__file__))
-logging.basicConfig(filename= f"{dir_path}/logs/app.log", level=logging.INFO)
+logging.basicConfig(filename=f"{dir_path}/logs/app.log", level=logging.INFO)
 
 
 def sigterm_handler(s, frame):
@@ -30,13 +29,6 @@ if os.environ.get('FLASK_ENV') != "development":
 
 app = Flask(__name__)
 CORS(app)
-# config = {
-#     'GRAYLOG_HOST': 'graylog.service.consul',
-#     'GRAYLOG_FACILITY': 'twitch-briefer'
-# }
-# graylog = Graylog(app, config=config)
-#
-# graylog.info('test')
 
 
 @app.route('/')
@@ -47,29 +39,6 @@ def index():
 @app.route('/status')
 def status():
     return jsonify({})
-
-
-@app.route('/fly')
-def fly():
-    return render_template('fly.html',
-                           twitch_client_id=os.environ['TWITCH_CLIENT_ID'])
-
-
-@app.route('/forge')
-def forge():
-    return render_template('forge.html',
-                           twitch_client_id=os.environ['TWITCH_CLIENT_ID'])
-
-
-@app.route('/map')
-def map():
-    if request.args.get('raw') is not None:
-        return render_template('raw_map.html',
-                               access_token=os.environ['GOOGLE_API_KEY'],
-                               includeJquery=True)
-    else:
-        return render_template('map.html',
-                               access_token=os.environ['GOOGLE_API_KEY'])
 
 
 @app.route('/data', methods=['GET'])
@@ -93,6 +62,11 @@ def choose_winner():
 def put():
     set_data(request.args.get('nam'), request.args.get('val'))
     return "OK"
+
+
+@app.route('/marquee/map', methods=['GET'])
+def marquee_map():
+    return render_template('marquee_map.html')
 
 
 @app.route('/plan', methods=['POST'])
@@ -137,4 +111,4 @@ def plan():
 
 
 if __name__ == '__main__':
-    app.run(host='0.0.0.0', debug=True, port=5555)
+    app.run(host='0.0.0.0', debug=True, port=8888)

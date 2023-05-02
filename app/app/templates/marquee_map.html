@@ -1,0 +1,66 @@
+{% extends "base_no_nav.html" %}
+
+{% block head %}
+  <script src="https://unpkg.com/leaflet@1.6.0/dist/leaflet.js"></script>
+  <script src="/static/js/leaflet.rotatedMarker.js"></script>
+  <link href="https://unpkg.com/leaflet@1.6.0/dist/leaflet.css" rel="stylesheet"/>
+{% endblock %}
+
+{% block content %}
+  <script>
+      $(document).ready(function(){
+          // Where you want to render the map.
+          var element = document.getElementById('osm-map');
+
+          // Height has to be set. You can do this in CSS too.
+          element.style = 'position: absolute; top: 0; bottom: 0; left: 0; right: 0;';
+
+          // Create Leaflet map on map element.
+          var map = L.map(element);
+
+          // Add OSM tile layer to the Leaflet map.
+          L.tileLayer('http://{s}.tile.osm.org/{z}/{x}/{y}.png', {
+              attribution: '&copy; <a href="http://osm.org/copyright">OpenStreetMap</a> contributors'
+          }).addTo(map);
+
+          // Target's GPS coordinates.
+          var target = L.latLng('47.50737', '19.04611');
+
+          // Set map's center to target with zoom 14.
+          map.setView(target, 14);
+
+          var planeIcon = L.icon({
+              iconUrl: '/static/img/plane.png',
+              iconSize: [80, 78],
+              iconAnchor: [40, 39],
+              popupAnchor: [0, 0]
+          });
+
+          // Place a marker on the same location.
+          var marker = L.marker(target, {icon: planeIcon}).addTo(map);
+
+          // setup the data fetch loop
+          setInterval(function() {
+              $.getJSON('/data?thing=map', function(data){
+                  // update the marker position
+                  marker.setLatLng([data.lat, data.lng]);
+
+                  // update the map view
+                  var zoom = map.getZoom();
+                  if (data.gs < 50 )
+                      zoom = 20;
+                  else if (data.gs < 100)
+                      zoom = 14
+                  else
+                      zoom = 10;
+
+                  map.setView([data.lat, data.lng], zoom);
+
+                  // rotate the plane icon to match the heading
+                  marker.setRotationAngle(data.hdg);
+              });
+          }, 1000);
+      });
+  </script>
+  <div id="osm-map"></div>
+{% endblock %}
