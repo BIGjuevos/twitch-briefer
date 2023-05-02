@@ -2,7 +2,7 @@ import logging
 
 from pymysqlpool.pool import Pool
 
-pool = Pool(host="tools.ryannull.com", port=3306, user="otc", password="otc", db="otc", min_size=1, max_size=2)
+pool = Pool(host="10.0.10.4", port=3306, user="otc", password="otc", db="otc", min_size=1, max_size=2)
 pool.init()
 
 
