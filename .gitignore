@@ -3,3 +3,4 @@ venv/
 app/app/__pycache__/
 app/app/helpers/__pycache__/
 app/app/logs/app.log
+.env
