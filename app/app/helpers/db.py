@@ -90,6 +90,63 @@ def get_data(thing):
                 'hdg': hdg,
                 'gs': gs
             }
+        elif thing == "info":
+            cursor.execute("SELECT * from databits WHERE nam=%s", ("alt",))
+            alt = int(float(cursor.fetchone()["val"]))
+
+            cursor.execute("SELECT * from databits WHERE nam=%s", ("vs",))
+            vs = cursor.fetchone()["val"]
+            if vs == "-0":
+                vs = "0"
+
+            cursor.execute("SELECT * from databits WHERE nam=%s", ("hdg",))
+            hdg = cursor.fetchone()["val"]
+
+            cursor.execute("SELECT * from databits WHERE nam=%s", ("inches",))
+            inches = cursor.fetchone()["val"]
+
+            cursor.execute("SELECT * from databits WHERE nam=%s", ("gs",))
+            gs = cursor.fetchone()["val"]
+
+            cursor.execute("SELECT * from databits WHERE nam=%s", ("tas",))
+            tas = cursor.fetchone()["val"]
+
+            cursor.execute("SELECT * from databits WHERE nam=%s", ("ias",))
+            ias = cursor.fetchone()["val"]
+
+            cursor.execute("SELECT * from databits WHERE nam=%s", ("mach",))
+            mach = cursor.fetchone()["val"]
+
+            # lat
+            cursor.execute("SELECT * from databits WHERE nam=%s", ("lat",))
+            lat = cursor.fetchone()["val"]
+
+            # lng
+            cursor.execute("SELECT * from databits WHERE nam=%s", ("lng",))
+            lng = cursor.fetchone()["val"]
+
+            # pitch
+            cursor.execute("SELECT * from databits WHERE nam=%s", ("pitch",))
+            pitch = cursor.fetchone()["val"]
+
+            # bank
+            cursor.execute("SELECT * from databits WHERE nam=%s", ("bank",))
+            bank = cursor.fetchone()["val"]
+
+            ret = {
+                'alt': alt,
+                'vs': vs,
+                'hdg': hdg,
+                'inches': inches,
+                'gs': gs,
+                'tas': tas,
+                'ias': ias,
+                'mach': mach,
+                'lat': lat,
+                'lng': lng,
+                'pitch': pitch,
+                'bank': bank
+            }
         elif thing == "hdg":
             cursor.execute("SELECT * from databits WHERE nam=%s", ("hdg",))
             ret = cursor.fetchone()["val"]
