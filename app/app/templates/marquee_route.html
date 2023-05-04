@@ -113,7 +113,7 @@ td.value {
   <script>
       // setup the data fetch loop
       setInterval(function() {
-          $.getJSON('/data', function(data){
+          $.getJSON('/data?thing=ret', function(data){
               $('#alt').text(data.alt);
               $('#gs').text(data.gs);
               $('#vs').text(data.vs);

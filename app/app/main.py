@@ -1,3 +1,4 @@
+import json
 import logging
 import os
 import signal
@@ -43,7 +44,7 @@ def status():
 
 @app.route('/data', methods=['GET'])
 def data():
-    return jsonify(get_data(request.args.get('thing')))
+    return jsonify(get_data())
 
 
 @app.route('/guess', methods=['GET'])

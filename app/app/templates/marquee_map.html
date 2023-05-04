@@ -24,7 +24,7 @@
           }).addTo(map);
 
           // Target's GPS coordinates.
-          var target = L.latLng('47.50737', '19.04611');
+          var target = L.latLng('0', '0');
 
           // Set map's center to target with zoom 14.
           map.setView(target, 14);
@@ -39,11 +39,25 @@
           // Place a marker on the same location.
           var marker = L.marker(target, {icon: planeIcon}).addTo(map);
 
+          // add the departure and arrival points
+          var dep = [0, 0];
+          var arr = [0, 0];
+          var plane = [0, 0];
+          var line = L.polyline([dep, plane, arr]).addTo(map);
+
           // setup the data fetch loop
           setInterval(function() {
-              $.getJSON('/data?thing=map', function(data){
+              $.getJSON('/data', function(data){
+                  dep = [data.dep.laty, data.dep.lonx];
+                  arr = [data.arr.laty, data.arr.lonx];
+                  plane = [data.lat, data.lng];
+
+                  // update the line
+                  line.setLatLngs([dep, plane, arr]);
+
                   // update the marker position
-                  marker.setLatLng([data.lat, data.lng]);
+                  marker.setLatLng(plane);
+                  marker.setRotationAngle(data.hdg);
 
                   // update the map view
                   var zoom = map.getZoom();
@@ -55,9 +69,6 @@
                       zoom = 10;
 
                   map.setView([data.lat, data.lng], zoom);
-
-                  // rotate the plane icon to match the heading
-                  marker.setRotationAngle(data.hdg);
               });
           }, 1000);
       });

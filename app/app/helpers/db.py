@@ -1,5 +1,6 @@
 import logging
 
+from pymysql.cursors import DictCursor
 from pymysqlpool.pool import Pool
 
 pool = Pool(host="10.0.10.4", port=3306, user="otc", password="otc", db="otc", min_size=1, max_size=2)
@@ -53,7 +54,7 @@ def get_airport_data(airport) -> dict:
 
     try:
         connection.begin()
-        cursor.execute("SELECT * from airports WHERE ident=%s", (airport,))
+        cursor.execute(f"SELECT * from airports WHERE ident=\"{airport}\" LIMIT 1")
         ret = cursor.fetchone()
     except Exception as e:
         logging.getLogger().error(e)
@@ -64,121 +65,39 @@ def get_airport_data(airport) -> dict:
     return ret
 
 
-def get_data(thing):
+def get_data():
     connection = pool.get_conn()
-    cursor = connection.cursor()
-    ret = ""
+    cursor = connection.cursor(DictCursor)
+    ret = {}
 
     try:
         connection.begin()
-        if thing == "map":
-            cursor.execute("SELECT * from databits WHERE nam=%s", ("lat",))
-            lat = cursor.fetchone()["val"]
+        cursor.execute("SELECT * from databits")
+        for bit in cursor.fetchall():
+            ret[bit["nam"]] = bit["val"]
 
-            cursor.execute("SELECT * from databits WHERE nam=%s", ("lng",))
-            lng = cursor.fetchone()["val"]
+            if bit["nam"] == "alt":
+                ret[bit["nam"]] = int(float(bit["val"]))
+            elif bit["nam"] == "vs":
+                if bit["val"] == "-0":
+                    ret[bit["nam"]] = "0"
 
-            cursor.execute("SELECT * from databits WHERE nam=%s", ("hdg",))
-            hdg = cursor.fetchone()["val"]
+        # dep info
+        cursor.execute(f"SELECT ident, lonx, laty, name from airports WHERE ident=\"{ret['dep']}\" LIMIT 1")
+        dep = dict(cursor.fetchone())
+        dep['lonx'] = float(dep['lonx'])
+        dep['laty'] = float(dep['laty'])
+        ret['dep'] = dep
 
-            cursor.execute("SELECT * from databits WHERE nam=%s", ("gs",))
-            gs = cursor.fetchone()["val"]
-
-            ret = {
-                'lat': lat,
-                'lng': lng,
-                'hdg': hdg,
-                'gs': gs
-            }
-        elif thing == "info":
-            cursor.execute("SELECT * from databits WHERE nam=%s", ("alt",))
-            alt = int(float(cursor.fetchone()["val"]))
-
-            cursor.execute("SELECT * from databits WHERE nam=%s", ("vs",))
-            vs = cursor.fetchone()["val"]
-            if vs == "-0":
-                vs = "0"
-
-            cursor.execute("SELECT * from databits WHERE nam=%s", ("hdg",))
-            hdg = cursor.fetchone()["val"]
-
-            cursor.execute("SELECT * from databits WHERE nam=%s", ("inches",))
-            inches = cursor.fetchone()["val"]
-
-            cursor.execute("SELECT * from databits WHERE nam=%s", ("gs",))
-            gs = cursor.fetchone()["val"]
-
-            cursor.execute("SELECT * from databits WHERE nam=%s", ("tas",))
-            tas = cursor.fetchone()["val"]
-
-            cursor.execute("SELECT * from databits WHERE nam=%s", ("ias",))
-            ias = cursor.fetchone()["val"]
-
-            cursor.execute("SELECT * from databits WHERE nam=%s", ("mach",))
-            mach = cursor.fetchone()["val"]
-
-            # lat
-            cursor.execute("SELECT * from databits WHERE nam=%s", ("lat",))
-            lat = cursor.fetchone()["val"]
-
-            # lng
-            cursor.execute("SELECT * from databits WHERE nam=%s", ("lng",))
-            lng = cursor.fetchone()["val"]
-
-            # pitch
-            cursor.execute("SELECT * from databits WHERE nam=%s", ("pitch",))
-            pitch = cursor.fetchone()["val"]
-
-            # bank
-            cursor.execute("SELECT * from databits WHERE nam=%s", ("bank",))
-            bank = cursor.fetchone()["val"]
-
-            ret = {
-                'alt': alt,
-                'vs': vs,
-                'hdg': hdg,
-                'inches': inches,
-                'gs': gs,
-                'tas': tas,
-                'ias': ias,
-                'mach': mach,
-                'lat': lat,
-                'lng': lng,
-                'pitch': pitch,
-                'bank': bank
-            }
-        elif thing == "hdg":
-            cursor.execute("SELECT * from databits WHERE nam=%s", ("hdg",))
-            ret = cursor.fetchone()["val"]
-        elif thing == "gs":
-            cursor.execute("SELECT * from databits WHERE nam=%s", ("gs",))
-            ret = cursor.fetchone()["val"]
-        elif thing == "vs":
-            cursor.execute("SELECT * from databits WHERE nam=%s", ("vs",))
-            ret = cursor.fetchone()["val"]
-        elif thing == "og":
-            cursor.execute("SELECT * from databits WHERE nam=%s", ("og",))
-            ret = cursor.fetchone()["val"]
-        elif thing == "tas":
-            cursor.execute("SELECT * from databits WHERE nam=%s", ("tas",))
-            ret = cursor.fetchone()["val"]
-        elif thing == "alt":
-            cursor.execute("SELECT * from databits WHERE nam=%s", ("alt",))
-            ret = cursor.fetchone()["val"]
-        elif thing == "rte":
-            cursor.execute("SELECT * from databits WHERE nam=%s", ("dep",))
-            dep = cursor.fetchone()["val"]
-
-            cursor.execute("SELECT * from databits WHERE nam=%s", ("arr",))
-            arr = cursor.fetchone()["val"]
-
-            cursor.execute("SELECT * from databits WHERE nam=%s", ("rte",))
-            rte = cursor.fetchone()["val"]
-
-            ret = dep + " " + rte + " " + arr
-
+        # arr info
+        cursor.execute(f"SELECT ident, lonx, laty, name from airports WHERE ident=\"{ret['arr']}\" LIMIT 1")
+        arr = dict(cursor.fetchone())
+        arr['lonx'] = float(arr['lonx'])
+        arr['laty'] = float(arr['laty'])
+        ret['arr'] = arr
     except Exception as e:
         logging.getLogger().error(e)
+        raise e
     finally:
         connection.rollback()
         cursor.close()
