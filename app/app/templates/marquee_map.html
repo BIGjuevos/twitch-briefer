@@ -19,9 +19,16 @@
           var map = L.map(element);
 
           // Add OSM tile layer to the Leaflet map.
-          L.tileLayer('http://{s}.tile.osm.org/{z}/{x}/{y}.png', {
-              attribution: '&copy; <a href="http://osm.org/copyright">OpenStreetMap</a> contributors'
+          var Stadia_AlidadeSmoothDark = L.tileLayer('https://tiles.stadiamaps.com/tiles/alidade_smooth_dark/{z}/{x}/{y}{r}.png', {
+              maxZoom: 20,
+              attribution: '&copy; <a href="https://stadiamaps.com/">Stadia Maps</a>, &copy; <a href="https://openmaptiles.org/">OpenMapTiles</a> &copy; <a href="http://openstreetmap.org">OpenStreetMap</a> contributors'
           }).addTo(map);
+          /**
+          L.tileLayer('http://{s}.tile.osm.org/{z}/{x}/{y}.png', {
+              attribution: '&copy; <a href="http://osm.org/copyright">OpenStreetMap</a> contributors',
+              id: 'mapbox'
+          }).addTo(map);
+           */
 
           // Target's GPS coordinates.
           var target = L.latLng('0', '0');
@@ -61,12 +68,14 @@
 
                   // update the map view
                   var zoom = map.getZoom();
-                  if (data.gs < 50 )
+                  if (data.gs < 10)
                       zoom = 20;
-                  else if (data.gs < 100)
-                      zoom = 14
+                  else if (data.gs < 50 )
+                      zoom = 16;
+                  else if (data.gs < 250)
+                      zoom = 12
                   else
-                      zoom = 10;
+                      zoom = 8;
 
                   map.setView([data.lat, data.lng], zoom);
               });

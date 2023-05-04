@@ -1,6 +1,7 @@
 {% extends "base_no_nav.html" %}
 
 {% block head %}
+  <script src="/static/js/progressbar.js"></script>
 <style>
 body {
     background-color: black;
@@ -20,6 +21,25 @@ td.label {
 td.value {
     text-align: left;
     padding-left: 10px;
+    min-width: 150px;
+}
+td.progress {
+    min-width: 75%;
+    text-align: center;
+}
+td.origin {
+    text-align: right;
+    padding-right: 10px;
+}
+#progress-bar {
+    width: 100%;
+    height: 20px;
+    border: 1px solid white;
+    margin: 10px 0 0;
+}
+#progress-bar > svg {
+    height: 100%;
+    display: block;
 }
 </style>
 {% endblock %}
@@ -27,106 +47,107 @@ td.value {
 {% block content %}
   <table>
     <tr>
-      <td class="label">
-        <b>Altitude</b>
+      <td class="value origin" colspan="2">
+        <span id="origin"></span>
+        <br />
+        <span id="origin_name"></span>
+        <br />
+        <b>DFO</b> <span id="dfo"></span> nm
       </td>
-      <td class="value">
-        <span id="alt"></span> feet
+
+      <td class="progress">
+        <div id="progress-bar"></div>
+        <span id="total_distance"></span> nm
       </td>
-      <td class="label">
-        <b>Ground Speed</b>
-      </td>
-      <td class="value">
-        <span id="gs"></span> mph
-      </td>
-      <td class="label">
-        <b>Latitude</b>
-      </td>
-      <td class="value">
-        <span id="lat"></span> deg
+
+      <td class="value dest" colspan="2">
+        <span id="dest"></span>
+        <br />
+        <span id="dest_name"></span>
+        <br />
+        <b>DTD</b> <span id="dtd"></span> nm
       </td>
     </tr>
-
     <tr>
       <td class="label">
-        <b>Vertical Speed</b>
+        <b>Route</b>
       </td>
-      <td class="value">
-        <span id="vs"></span> feet/min
-      </td>
-      <td class="label">
-        <b>TAS</b>
-      </td>
-      <td class="value">
-        <span id="tas"></span> kt
-      </td>
-      <td class="label">
-        <b>Longitude</b>
-      </td>
-      <td class="value">
-        <span id="lng"></span> deg
-      </td>
-    </tr>
-
-    <tr>
-      <td class="label">
-        <b>Heading</b>
-      </td>
-      <td class="value">
-        <span id="hdg"></span> deg
-      </td>
-      <td class="label">
-        <b>IAS</b>
-      </td>
-      <td class="value">
-        <span id="ias"></span> kt
-      </td>
-      <td class="label">
-        <b>Pitch</b>
-      </td>
-      <td class="value">
-        <span id="pitch"></span> deg
-      </td>
-    </tr>
-
-    <tr>
-      <td class="label">
-        <b>Inches</b>
-      </td>
-      <td class="value">
-        <span id="inches"></span> Hg
-      </td>
-      <td class="label">
-        <b>Mach</b>
-      </td>
-      <td class="value">
-        <span id="mach"></span> mach
-      </td>
-      <td class="label">
-        <b>Bank</b>
-      </td>
-      <td class="value">
-        <span id="bank"></span> deg
+      <td class="value" colspan="2">
+        <span id="route"></span>
       </td>
     </tr>
   </table>
+
   <script>
+      var progress;
+
+      function getDistanceFromLatLonInNm(lat1, lon1, lat2, lon2) {
+          var R = 6371; // Radius of the earth in km
+          var dLat = deg2rad(lat2-lat1);  // deg2rad below
+          var dLon = deg2rad(lon2-lon1);
+          var a =
+              Math.sin(dLat/2) * Math.sin(dLat/2) +
+              Math.cos(deg2rad(lat1)) * Math.cos(deg2rad(lat2)) *
+              Math.sin(dLon/2) * Math.sin(dLon/2)
+          ;
+          var c = 2 * Math.atan2(Math.sqrt(a), Math.sqrt(1-a));
+          var d = R * c; // Distance in km
+          d = d * 0.5399568; // convert to nm
+          return d;
+      }
+
+      function deg2rad(deg) {
+          return deg * (Math.PI/180)
+      }
       // setup the data fetch loop
       setInterval(function() {
           $.getJSON('/data?thing=ret', function(data){
-              $('#alt').text(data.alt);
-              $('#gs').text(data.gs);
-              $('#vs').text(data.vs);
-              $('#tas').text(data.tas);
-              $('#hdg').text(data.hdg);
-              $('#ias').text(data.ias);
-              $('#inches').text(data.inches);
-              $('#mach').text(data.mach);
-              $('#lat').text(data.lat);
-              $('#lng').text(data.lng);
-              $('#pitch').text(data.pitch);
-              $('#bank').text(data.bank);
+              // origin
+              $('#origin').text(data.dep.ident);
+              $('#origin_name').text(data.dep.name);
+
+              // destination
+              $('#dest').text(data.arr.ident);
+              $('#dest_name').text(data.arr.name);
+
+              // distance from origin to destination
+              var total_distance = getDistanceFromLatLonInNm(
+                  data.dep.laty,
+                  data.dep.lonx,
+                  data.arr.laty,
+                  data.arr.lonx
+              );
+              // distance from current location to origin
+              var dfo = getDistanceFromLatLonInNm(
+                  data.lat,
+                  data.lng,
+                  data.dep.laty,
+                  data.dep.lonx
+              );
+              // distance from current location to destination
+              var dtd = getDistanceFromLatLonInNm(
+                  data.lat,
+                  data.lng,
+                  data.arr.laty,
+                  data.arr.lonx
+              );
+
+              // update the display
+              $('#dfo').text(dfo.toFixed(1));
+              $('#dtd').text(dtd.toFixed(1));
+              $('#total_distance').text(total_distance.toFixed(1));
+              $('#route').text(data.rte);
+
+              // compute progress ration
+              var progress_ratio = dfo / total_distance;
+              progress.animate(progress_ratio, {});
           });
       }, 1000);
+
+      $(document).ready(function() {
+          progress = new ProgressBar.Line('#progress-bar', {
+              color: '#FFFFFF'
+          });
+      });
   </script>
 {% endblock %}

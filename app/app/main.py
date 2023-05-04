@@ -75,6 +75,11 @@ def marquee_info():
     return render_template('marquee_info.html')
 
 
+@app.route('/marquee/route', methods=['GET'])
+def marquee_route():
+    return render_template('marquee_route.html')
+
+
 @app.route('/plan', methods=['POST'])
 def plan():
     """fetch the page for the plans we care about"""
