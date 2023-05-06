@@ -1,21 +1,15 @@
 import hashlib
-import json
 import logging
 import os
 import signal
 import sys
-import textwrap
-import traceback
 import urllib.request
-from datetime import datetime
-from typing import re
 
 import xmltodict as xmltodict
 from flask import Flask, request, render_template, jsonify, make_response
 from flask_cors import CORS
 
 from .helpers.db import get_data, set_data, guess, just_end_it_all
-from .helpers.flight import get_metar, get_taf, get_fuel, get_route
 
 WRAP_WIDTH = 65
 
@@ -98,8 +92,8 @@ def planned():
     flight_plan = xmltodict.parse(response.read())['OFP']
 
     set_data("rte", flight_plan['general']['route'])
-    set_data("dep", flight_plan['origin']['iata_code'])
-    set_data("arr", flight_plan['destination']['iata_code'])
+    set_data("dep", flight_plan['origin']['icao_code'])
+    set_data("arr", flight_plan['destination']['icao_code'])
     set_data("cruise_alt", flight_plan['general']['initial_altitude'])
     set_data("pass_count", flight_plan['general']['passengers'])
 
