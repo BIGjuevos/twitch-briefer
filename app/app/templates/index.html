@@ -1,25 +1,38 @@
 {% extends "base.html" %}
 
+{% block head %}
+  <script type="text/javascript" src="/static/js/simbrief.apiv1.js"></script>
+{% endblock %}
+
 {% block content %}
-<form method="post" action="/plan">
+<form id="sbapiform">
     <div class="container">
         <div class="row">
             <div class="col-sm">
                 <div class="row">
                     <div class="col">
-                        <input name="origin" type="text" class="form-control" placeholder="Origin">
+                        <input name="orig" type="text" class="form-control" placeholder="Origin">
                     </div>
                     <div class="col">
-                        <input name="destination" type="text" class="form-control" placeholder="Destination">
+                        <input name="dest" type="text" class="form-control" placeholder="Destination">
                     </div>
                 </div>
             </div>
         </div>
         <div class="row mt-3">
             <div class="col-sm">
-                <button type="submit" class="btn btn-primary">Make Briefing</button>
+                <button type="button" class="btn btn-primary" onclick="simbriefsubmit('http://localhost:8888/planned');">Make Briefing</button>
             </div>
         </div>
     </div>
+<input type="hidden" name="type" value="B738">
+<input type="hidden" name="units" value="LBS">
+<input type="hidden" name="cpt" value="OneTrueCaptain">
+<input type="hidden" name="airline" value="ZFG">
+<input type="hidden" name="civalue" value="80">
+<input type="hidden" name="fltnum" value="632">
+<input type="hidden" name="callsign" value="ZFG632">
+<input type="hidden" name="manualrmk" value="\nCALLSIGN=ZERO 632 RMK/VPC /V/">
+<input type="hidden" name="notams" value="0">
 </form>
 {% endblock %}

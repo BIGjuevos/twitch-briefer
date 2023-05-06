@@ -1,3 +1,4 @@
+import hashlib
 import json
 import logging
 import os
@@ -5,9 +6,12 @@ import signal
 import sys
 import textwrap
 import traceback
+import urllib.request
 from datetime import datetime
+from typing import re
 
-from flask import Flask, request, render_template, jsonify
+import xmltodict as xmltodict
+from flask import Flask, request, render_template, jsonify, make_response
 from flask_cors import CORS
 
 from .helpers.db import get_data, set_data, guess, just_end_it_all
@@ -16,7 +20,9 @@ from .helpers.flight import get_metar, get_taf, get_fuel, get_route
 WRAP_WIDTH = 65
 
 dir_path = os.path.dirname(os.path.realpath(__file__))
-logging.basicConfig(filename=f"{dir_path}/logs/app.log", level=logging.INFO)
+logging.basicConfig(filename=f"/dev/stdout", level=logging.INFO)
+
+logger = logging.getLogger(__name__)
 
 
 def sigterm_handler(s, frame):
@@ -80,45 +86,64 @@ def marquee_route():
     return render_template('marquee_route.html')
 
 
-@app.route('/plan', methods=['POST'])
-def plan():
-    """fetch the page for the plans we care about"""
-    origin = request.form['origin']
-    dest = request.form['destination']
+@app.route('/planned', methods=['GET'])
+def planned():
+    args = request.args
+    logger.info(f"Planned request: {args}")
 
-    try:
-        flight_plan = get_route(origin, dest)
-        route = "\n".join(textwrap.wrap(flight_plan['route'], WRAP_WIDTH))
-        flight_levels = flight_plan['flight_levels']
-        distance = flight_plan['distance']
+    url = 'http://www.simbrief.com/ofp/flightplans/xml/' + args['ofp_id'] + '.xml'
+    logger.info(f"Flightplan URL {url}")
+    response = urllib.request.urlopen(url)
+    flight_plan = xmltodict.parse(response.read())['OFP']
 
-        origin_weather = "\n".join(textwrap.wrap(get_metar(origin), WRAP_WIDTH))
-        dest_weather = "\n".join(textwrap.wrap(get_metar(dest), WRAP_WIDTH))
+    set_data("rte", flight_plan['general']['route'])
+    set_data("dep", flight_plan['origin']['iata_code'])
+    set_data("arr", flight_plan['destination']['iata_code'])
+    set_data("cruise_alt", flight_plan['general']['initial_altitude'])
+    set_data("pass_count", flight_plan['general']['passengers'])
 
-        origin_taf = "\n".join(textwrap.wrap(get_taf(origin), WRAP_WIDTH))
-        dest_taf = "\n".join(textwrap.wrap(get_taf(dest), WRAP_WIDTH))
+    preflight_url = str(flight_plan['prefile']['vatsim']['link']) + "&rmk=CALLSIGN%3DZERO%20RMK%2FVPC%20RMK%2FSIMBRIEF%20%2FV%2F"
 
-        fuel = get_fuel(origin, dest)
+    return render_template('plan.html',
+                           url=f"{flight_plan['files']['directory']}{flight_plan['files']['pdf']['link']}",
+                           prefile_url=preflight_url,
+                           )
 
-        set_data('rte', route)
-        set_data('dep', origin)
-        set_data('arr', dest)
 
-        return render_template('plan.html',
-                               origin=origin,
-                               dest=dest,
-                               flight_levels=flight_levels,
-                               distance=distance,
-                               requested_at=str(datetime.now()),
-                               origin_weather=origin_weather,
-                               dest_weather=dest_weather,
-                               origin_taf=origin_taf,
-                               dest_taf=dest_taf,
-                               fuel=fuel,
-                               route=route)
+@app.route('/simbrief', methods=['GET'])
+def simbrief():
+    """
+    Just pretend to be the PHP file, it was just easier than doing crappy PHP
+    """
+    args = request.args
+    simbrief_api_key = os.environ['SIMBRIEF_API_KEY']
 
-    except Exception as e:
-        return render_template('error.html', e=traceback.format_exc())
+    logger.info(f"Simbrief request: {args}")
+
+    if 'api_req' in args:
+        text = 'var api_code = "' + hashlib.md5(simbrief_api_key.encode('utf-8') + args['api_req'].encode('utf-8')).hexdigest() + '";'
+        response = make_response(text)
+        response.headers['Content-Type'] = "application/javascript"
+        return response
+
+    if 'js_url_check' in args:
+        varname = args['var'] if args['var'] and args['var'] != '' else 'phpvar'
+        logger.info(f"Checking {args['js_url_check']}")
+        logger.info(f"varname={varname}")
+
+        url = 'http://www.simbrief.com/ofp/flightplans/xml/' + args['js_url_check'] + '.xml'
+        logger.info(f"Checking {url}")
+        response = urllib.request.urlopen(url)
+
+        if response.getcode() != 200:
+            resp = False
+        else:
+            resp = True
+
+        text = 'var ' + varname + ' = "' + ('true' if resp else 'false') + '";'
+        response = make_response(text)
+        response.headers['Content-Type'] = "application/javascript"
+        return response
 
 
 if __name__ == '__main__':

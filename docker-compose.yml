@@ -8,3 +8,4 @@ services:
       - "8888:8888"
     environment:
       - AVWX_API_KEY=${AVWX_API_KEY}
+      - SIMBRIEF_API_KEY=${SIMBRIEF_API_KEY}
