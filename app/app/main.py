@@ -66,19 +66,9 @@ def put():
     return "OK"
 
 
-@app.route('/marquee/map', methods=['GET'])
+@app.route('/marquee', methods=['GET'])
 def marquee_map():
-    return render_template('marquee_map.html')
-
-
-@app.route('/marquee/info', methods=['GET'])
-def marquee_info():
-    return render_template('marquee_info.html')
-
-
-@app.route('/marquee/route', methods=['GET'])
-def marquee_route():
-    return render_template('marquee_route.html')
+    return render_template('marquee.html')
 
 
 @app.route('/planned', methods=['GET'])

@@ -1,0 +1,392 @@
+{% extends "base_no_nav.html" %}
+
+{% block head %}
+  <!-- rotator stuff -->
+  <script>
+      $(document).ready(function(){
+          setInterval(function() {
+              var current = $('.visible');
+              var next = current.next().length ? current.next() : current.parent().children(':first');
+              current.removeClass('visible');
+              next.addClass('visible');
+          }, 15000);
+      });
+  </script>
+  <style>
+      .block {
+          opacity: 0;
+      }
+      .visible {
+          opacity: 1;
+          transition: opacity 1s ease-in-out;
+      }
+  </style>
+
+  <!-- map stuff -->
+  <script src="https://unpkg.com/leaflet@1.6.0/dist/leaflet.js"></script>
+  <script src="/static/js/leaflet.rotatedMarker.js"></script>
+  <link href="https://unpkg.com/leaflet@1.6.0/dist/leaflet.css" rel="stylesheet"/>
+
+  <script>
+      $(document).ready(function(){
+          // Where you want to render the map.
+          var element = document.getElementById('block-map');
+
+          // Height has to be set. You can do this in CSS too.
+          element.style = 'position: absolute; top: 0; bottom: 0; left: 0; right: 0;';
+
+          // Create Leaflet map on map element.
+          var map = L.map(element);
+
+          // Add OSM tile layer to the Leaflet map.
+          var Stadia_AlidadeSmoothDark = L.tileLayer('https://tiles.stadiamaps.com/tiles/alidade_smooth_dark/{z}/{x}/{y}{r}.png', {
+              maxZoom: 20,
+              attribution: '&copy; <a href="https://stadiamaps.com/">Stadia Maps</a>, &copy; <a href="https://openmaptiles.org/">OpenMapTiles</a> &copy; <a href="http://openstreetmap.org">OpenStreetMap</a> contributors'
+          }).addTo(map);
+          /**
+           L.tileLayer('http://{s}.tile.osm.org/{z}/{x}/{y}.png', {
+              attribution: '&copy; <a href="http://osm.org/copyright">OpenStreetMap</a> contributors',
+              id: 'mapbox'
+          }).addTo(map);
+           */
+
+              // Target's GPS coordinates.
+          var target = L.latLng('0', '0');
+
+          // Set map's center to target with zoom 14.
+          map.setView(target, 14);
+
+          var planeIcon = L.icon({
+              iconUrl: '/static/img/plane.png',
+              iconSize: [80, 78],
+              iconAnchor: [40, 39],
+              popupAnchor: [0, 0]
+          });
+
+          // Place a marker on the same location.
+          var marker = L.marker(target, {icon: planeIcon}).addTo(map);
+
+          // add the departure and arrival points
+          var dep = [0, 0];
+          var arr = [0, 0];
+          var plane = [0, 0];
+          var line = L.polyline([dep, plane, arr]).addTo(map);
+
+          // setup the data fetch loop
+          setInterval(function() {
+              $.getJSON('/data', function(data){
+                  dep = [data.dep.laty, data.dep.lonx];
+                  arr = [data.arr.laty, data.arr.lonx];
+                  plane = [data.lat, data.lng];
+
+                  // update the line
+                  line.setLatLngs([dep, plane, arr]);
+
+                  // update the marker position
+                  marker.setLatLng(plane);
+                  marker.setRotationAngle(data.hdg);
+
+                  // update the map view
+                  var zoom = map.getZoom();
+                  if (data.gs < 10)
+                      zoom = 20;
+                  else if (data.gs < 50 )
+                      zoom = 16;
+                  else if (data.gs < 250)
+                      zoom = 12
+                  else
+                      zoom = 8;
+
+                  map.setView([data.lat, data.lng], zoom);
+              });
+          }, 1000);
+      });
+  </script>
+
+  <!-- info stuff -->
+  <style>
+      body {
+          background-color: #333333;
+          color: #9198a1;
+      }
+      #block-info {
+          position: absolute;
+          top: 0;
+          bottom: 0;
+          left: 0;
+          right: 0;
+          overflow: auto;
+          padding: 10px;
+      }
+      table {
+          width: 100%;
+          border-collapse: collapse;
+      }
+      td {
+          font-family: monospace;
+      }
+      td.label {
+          text-align: right;
+          padding-right: 10px;
+      }
+      td.value {
+          text-align: left;
+          padding-left: 10px;
+      }
+  </style>
+  <script>
+      // setup the data fetch loop
+      setInterval(function() {
+          $.getJSON('/data', function(data){
+              $('#alt').text(data.alt);
+              $('#gs').text(data.gs);
+              $('#vs').text(data.vs);
+              $('#tas').text(data.tas);
+              $('#hdg').text(data.hdg);
+              $('#ias').text(data.ias);
+              $('#inches').text(data.inches);
+              $('#mach').text(data.mach);
+              $('#lat').text(data.lat);
+              $('#lng').text(data.lng);
+              $('#pitch').text(data.pitch);
+              $('#bank').text(data.bank);
+          });
+      }, 1000);
+  </script>
+
+  <!-- route stuff -->
+  <script src="/static/js/progressbar.js"></script>
+  <style>
+      td.progress {
+          min-width: 75%;
+          text-align: center;
+      }
+      td.origin {
+          text-align: right;
+          padding-right: 10px;
+          min-width: 12.5%;
+      }
+      td.dest {
+          text-align: left;
+          padding-left: 10px;
+          min-width: 12.5%;
+      }
+      #progress-bar {
+          width: 100%;
+          height: 20px;
+          border: 1px solid white;
+          margin: 10px 0 0;
+      }
+      #progress-bar > svg {
+          height: 100%;
+          display: block;
+      }
+      #block-route {
+          position: absolute;
+          top: 0;
+          bottom: 0;
+          left: 0;
+          right: 0;
+          overflow: auto;
+          padding: 10px;
+      }
+  </style>
+
+  <script>
+      var progress;
+
+      function getDistanceFromLatLonInNm(lat1, lon1, lat2, lon2) {
+          var R = 6371; // Radius of the earth in km
+          var dLat = deg2rad(lat2-lat1);  // deg2rad below
+          var dLon = deg2rad(lon2-lon1);
+          var a =
+              Math.sin(dLat/2) * Math.sin(dLat/2) +
+              Math.cos(deg2rad(lat1)) * Math.cos(deg2rad(lat2)) *
+              Math.sin(dLon/2) * Math.sin(dLon/2)
+          ;
+          var c = 2 * Math.atan2(Math.sqrt(a), Math.sqrt(1-a));
+          var d = R * c; // Distance in km
+          d = d * 0.5399568; // convert to nm
+          return d;
+      }
+
+      function deg2rad(deg) {
+          return deg * (Math.PI/180)
+      }
+      // setup the data fetch loop
+      setInterval(function() {
+          $.getJSON('/data?thing=ret', function(data){
+              // origin
+              $('#origin').text(data.dep.ident);
+              $('#origin_name').text(data.dep.name);
+
+              // destination
+              $('#dest').text(data.arr.ident);
+              $('#dest_name').text(data.arr.name);
+
+              // distance from origin to destination
+              var total_distance = getDistanceFromLatLonInNm(
+                  data.dep.laty,
+                  data.dep.lonx,
+                  data.arr.laty,
+                  data.arr.lonx
+              );
+              // distance from current location to origin
+              var dfo = getDistanceFromLatLonInNm(
+                  data.lat,
+                  data.lng,
+                  data.dep.laty,
+                  data.dep.lonx
+              );
+              // distance from current location to destination
+              var dtd = getDistanceFromLatLonInNm(
+                  data.lat,
+                  data.lng,
+                  data.arr.laty,
+                  data.arr.lonx
+              );
+
+              // update the display
+              $('#dfo').text(dfo.toFixed(1));
+              $('#dtd').text(dtd.toFixed(1));
+              $('#total_distance').text(total_distance.toFixed(1));
+              $('#route').text(data.rte);
+
+              // compute progress ration
+              var progress_ratio = dfo / total_distance;
+              progress.animate(progress_ratio, {});
+          });
+      }, 1000);
+
+      $(document).ready(function() {
+          progress = new ProgressBar.Line('#progress-bar', {
+              color: '#FFFFFF'
+          });
+      });
+  </script>
+{% endblock %}
+
+{% block content %}
+  <div class="rotator">
+    <table id="block-info" class="block">
+      <tr>
+        <td class="label">
+          <b>Altitude</b>
+        </td>
+        <td class="value">
+          <span id="alt"></span> feet
+        </td>
+        <td class="label">
+          <b>Ground Speed</b>
+        </td>
+        <td class="value">
+          <span id="gs"></span> mph
+        </td>
+        <td class="label">
+          <b>Latitude</b>
+        </td>
+        <td class="value">
+          <span id="lat"></span> deg
+        </td>
+      </tr>
+
+      <tr>
+        <td class="label">
+          <b>Vertical Speed</b>
+        </td>
+        <td class="value">
+          <span id="vs"></span> feet/min
+        </td>
+        <td class="label">
+          <b>TAS</b>
+        </td>
+        <td class="value">
+          <span id="tas"></span> kt
+        </td>
+        <td class="label">
+          <b>Longitude</b>
+        </td>
+        <td class="value">
+          <span id="lng"></span> deg
+        </td>
+      </tr>
+
+      <tr>
+        <td class="label">
+          <b>Heading</b>
+        </td>
+        <td class="value">
+          <span id="hdg"></span> deg
+        </td>
+        <td class="label">
+          <b>IAS</b>
+        </td>
+        <td class="value">
+          <span id="ias"></span> kt
+        </td>
+        <td class="label">
+          <b>Pitch</b>
+        </td>
+        <td class="value">
+          <span id="pitch"></span> deg
+        </td>
+      </tr>
+
+      <tr>
+        <td class="label">
+          <b>Inches</b>
+        </td>
+        <td class="value">
+          <span id="inches"></span> Hg
+        </td>
+        <td class="label">
+          <b>Mach</b>
+        </td>
+        <td class="value">
+          <span id="mach"></span> mach
+        </td>
+        <td class="label">
+          <b>Bank</b>
+        </td>
+        <td class="value">
+          <span id="bank"></span> deg
+        </td>
+      </tr>
+    </table>
+
+    <div id="block-map" class="block visible"></div>
+
+    <table id="block-route" class="block">
+      <tr>
+        <td class="value origin" colspan="2">
+          <span id="origin"></span>
+          <br />
+          <span id="origin_name"></span>
+          <br />
+          <b>DFO</b> <span id="dfo"></span> nm
+        </td>
+
+        <td class="progress">
+          <div id="progress-bar"></div>
+          <span id="total_distance"></span> nm
+        </td>
+
+        <td class="value dest" colspan="2">
+          <span id="dest"></span>
+          <br />
+          <span id="dest_name"></span>
+          <br />
+          <b>DTD</b> <span id="dtd"></span> nm
+        </td>
+      </tr>
+      <tr>
+        <td class="label">
+          <b>Route</b>
+        </td>
+        <td class="value" colspan="2">
+          <span id="route"></span>
+        </td>
+      </tr>
+    </table>
+  </div>
+{% endblock %}
