@@ -9,7 +9,7 @@
               var next = current.next().length ? current.next() : current.parent().children(':first');
               current.removeClass('visible');
               next.addClass('visible');
-          }, 15000);
+          }, 5000);
       });
   </script>
   <style>
@@ -117,6 +117,7 @@
           right: 0;
           overflow: auto;
           padding: 10px;
+          font-size: 36px;
       }
       table {
           width: 100%;
@@ -138,18 +139,18 @@
       // setup the data fetch loop
       setInterval(function() {
           $.getJSON('/data', function(data){
-              $('#alt').text(data.alt);
-              $('#gs').text(data.gs);
-              $('#vs').text(data.vs);
-              $('#tas').text(data.tas);
-              $('#hdg').text(data.hdg);
-              $('#ias').text(data.ias);
+              $('#alt').text(Math.round(data.alt));
+              $('#gs').text(Math.round(data.gs));
+              $('#vs').text(Math.round(data.vs));
+              $('#tas').text(Math.round(data.tas));
+              $('#hdg').text(Math.round(data.hdg));
+              $('#ias').text(Math.round(data.ias));
               $('#inches').text(data.inches);
               $('#mach').text(data.mach);
               $('#lat').text(data.lat);
               $('#lng').text(data.lng);
-              $('#pitch').text(data.pitch);
-              $('#bank').text(data.bank);
+              $('#pitch').text(Math.round(data.pitch));
+              $('#bank').text(Math.round(data.bank));
           });
       }, 1000);
   </script>
@@ -158,23 +159,30 @@
   <script src="/static/js/progressbar.js"></script>
   <style>
       td.progress {
-          min-width: 75%;
           text-align: center;
       }
       td.origin {
-          text-align: right;
+          text-align: left;
           padding-right: 10px;
-          min-width: 12.5%;
+          min-width: 25%;
+          vertical-align: top;
+      }
+      #origin {
+          font-weight: bold;
       }
       td.dest {
-          text-align: left;
+          text-align: right;
           padding-left: 10px;
-          min-width: 12.5%;
+          min-width: 25%;
+          vertical-align: top;
+      }
+      #dest {
+          font-weight: bold;
       }
       #progress-bar {
           width: 100%;
-          height: 20px;
-          border: 1px solid white;
+          height: 40px;
+          border: 2px solid white;
           margin: 10px 0 0;
       }
       #progress-bar > svg {
@@ -189,6 +197,12 @@
           right: 0;
           overflow: auto;
           padding: 10px;
+          font-size: 36px;
+      }
+      .route {
+          padding-left:20px;
+          padding-right:20px;
+          vertical-align: top;
       }
   </style>
 
@@ -271,19 +285,19 @@
     <table id="block-info" class="block">
       <tr>
         <td class="label">
-          <b>Altitude</b>
+          <b>ALT</b>
         </td>
         <td class="value">
           <span id="alt"></span> feet
         </td>
         <td class="label">
-          <b>Ground Speed</b>
+          <b>GS</b>
         </td>
         <td class="value">
           <span id="gs"></span> mph
         </td>
         <td class="label">
-          <b>Latitude</b>
+          <b>LAT</b>
         </td>
         <td class="value">
           <span id="lat"></span> deg
@@ -292,7 +306,7 @@
 
       <tr>
         <td class="label">
-          <b>Vertical Speed</b>
+          <b>VS</b>
         </td>
         <td class="value">
           <span id="vs"></span> feet/min
@@ -304,7 +318,7 @@
           <span id="tas"></span> kt
         </td>
         <td class="label">
-          <b>Longitude</b>
+          <b>LNG</b>
         </td>
         <td class="value">
           <span id="lng"></span> deg
@@ -313,7 +327,7 @@
 
       <tr>
         <td class="label">
-          <b>Heading</b>
+          <b>HDG</b>
         </td>
         <td class="value">
           <span id="hdg"></span> deg
@@ -325,7 +339,7 @@
           <span id="ias"></span> kt
         </td>
         <td class="label">
-          <b>Pitch</b>
+          <b>PITCH</b>
         </td>
         <td class="value">
           <span id="pitch"></span> deg
@@ -334,19 +348,19 @@
 
       <tr>
         <td class="label">
-          <b>Inches</b>
+          <b>INCH</b>
         </td>
         <td class="value">
           <span id="inches"></span> Hg
         </td>
         <td class="label">
-          <b>Mach</b>
+          <b>MACH</b>
         </td>
         <td class="value">
           <span id="mach"></span> mach
         </td>
         <td class="label">
-          <b>Bank</b>
+          <b>BANK</b>
         </td>
         <td class="value">
           <span id="bank"></span> deg
@@ -356,37 +370,44 @@
 
     <div id="block-map" class="block visible"></div>
 
-    <table id="block-route" class="block">
-      <tr>
-        <td class="value origin" colspan="2">
-          <span id="origin"></span>
-          <br />
-          <span id="origin_name"></span>
-          <br />
-          <b>DFO</b> <span id="dfo"></span> nm
-        </td>
+    <div id="block-route" class="block">
+      <table>
+        <tr>
+          <td class="progress" colspan="3">
+            <div id="progress-bar"></div>
+            <span id="total_distance"></span> nm
+          </td>
+        </tr>
+        <tr>
+          <td class="value origin">
+            <span id="origin"></span>
+            <br />
+            <span id="origin_name"></span>
+          </td>
 
-        <td class="progress">
-          <div id="progress-bar"></div>
-          <span id="total_distance"></span> nm
-        </td>
+          <td class="route" rowspan="2">
+            <b>Route</b>
+            <br/>
+            <span id="route"></span>
+          </td>
 
-        <td class="value dest" colspan="2">
-          <span id="dest"></span>
-          <br />
-          <span id="dest_name"></span>
-          <br />
-          <b>DTD</b> <span id="dtd"></span> nm
-        </td>
-      </tr>
-      <tr>
-        <td class="label">
-          <b>Route</b>
-        </td>
-        <td class="value" colspan="2">
-          <span id="route"></span>
-        </td>
-      </tr>
-    </table>
+          <td class="value dest">
+            <span id="dest"></span>
+            <br />
+            <span id="dest_name"></span>
+          </td>
+        </tr>
+      </table>
+      <table>
+        <tr>
+          <td class="origin">
+            <b>DFO</b> <span id="dfo"></span> nm
+          </td>
+          <td class="dest">
+            <b>DTD</b> <span id="dtd"></span> nm
+        </tr>
+      </table>
+    </div>
+
   </div>
 {% endblock %}

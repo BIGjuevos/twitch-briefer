@@ -81,6 +81,13 @@ def get_data():
             elif bit["nam"] == "vs":
                 if bit["val"] == "-0":
                     ret[bit["nam"]] = "0"
+            elif bit["nam"] == "lat":
+                ret[bit["nam"]] = round(float(bit["val"]), 4)
+            elif bit["nam"] == "lng":
+                ret[bit["nam"]] = round(float(bit["val"]), 4)
+            elif bit["nam"] == "mach":
+                # round to 2 decimal places
+                ret[bit["nam"]] = round(float(bit["val"]), 2)
 
         # dep info
         cursor.execute(f"SELECT ident, lonx, laty, name from airports WHERE ident=\"{ret['dep']}\" LIMIT 1")
